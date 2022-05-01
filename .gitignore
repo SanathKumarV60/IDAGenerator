@@ -1,0 +1,6 @@
+deploy/mosip-packet-creator-0.0.1-SNAPSHOT.jar
+deploy/resource/iris
+mosip-packet-creator/target/
+mosipTestDataProvider/target/
+.idea/
+deploy/anguli
