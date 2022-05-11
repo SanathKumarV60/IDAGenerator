@@ -1,0 +1,79 @@
+version: '2.2'
+volumes:
+  shared-workspace:
+    driver: local
+services:
+    artifactory-server:
+        image: mosipid/artifactory-server:1.2.0
+        container_name: artifactory-server
+        tty: true
+        privileged: true
+        ports:
+            - 8085:8080 
+        volumes:
+            - shared-workspace:/opt/workspace
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - mosip
+
+    authentication-service:
+        image: mosipid/authentication-service:1.2.0
+        container_name: authentication-service
+        tty: true
+        privileged: true
+        ports:
+            - 8090:8090
+        volumes:
+            - shared-workspace:/opt/workspace
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - artifactory_url=http://artifactory-server:8080
+        depends_on:
+            - artifactory-server
+                # condition: service_healthy
+        networks:
+            - mosip
+
+    authentication-otp-service:
+        image: mosipid/authentication-otp-service:1.2.0
+        container_name: authentication-otp-service
+        tty: true
+        privileged: true
+        ports:
+            - 8092:8092
+        volumes:
+            - shared-workspace:/opt/workspace
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - artifactory_url=http://localhost:8085
+        depends_on:
+            - artifactory-server
+                # condition: service_healthy
+        networks:
+            - mosip
+
+    authentication-internal-service:
+        image: mosipid/authentication-internal-service
+        container_name: authentication-internal-service
+        tty: true
+        privileged: true
+        ports:
+            - 8093:8093
+        volumes:
+            - shared-workspace:/opt/workspace
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - artifactory_url=http://localhost:8085
+        depends_on:
+            - artifactory-server
+                # condition: service_healthy
+        networks:
+            - mosip
+
+    
+networks:
+    mosip:
+        ipam:
+            driver: default
+            config:
+             - subnet: 172.28.0.0/16
